@@ -1,0 +1,142 @@
+---
+title: " Exercise Class 3"
+author: "Quinhas Fernandes"
+date: "1/28/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(uwIntroStats)
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+library(readr)
+library(foreign)
+library(haven)
+knitr::opts_chunk$set(echo = TRUE, warning=TRUE, message=TRUE)
+
+link="https://github.com/quinhasf/pubpol-599/raw/master/ape_analysis.dta"
+
+chw_fp <- read_dta(url(link))
+```
+
+
+```{r ggplot1, eval=FALSE}
+chw_pf1 <- data.frame(chw_fp[c('province', 'ape_contrib')])
+
+tableFreq=as.data.frame(chw_pf1)
+
+names(tableFreq)=c("province","ape_contrib")
+#you have:
+tableFreq = tableFreq[order(-tableFreq$ape_contrib),]
+
+tableFreq  
+```
+
+
+
+```{r lolli_gg, eval=FALSE}
+base = ggplot(tableFreq, aes(x=province,ape_contrib)) 
+lolliplot1=base + geom_segment(aes(y = 0, 
+                                   x = province, 
+                                   yend = ape_contrib, 
+                                   xend = province), color = "grey50") 
+lolliplot1 + geom_point()
+```
+
+
+
+```{r lolli_ord_gg, eval=FALSE}
+
+# reordering DF steps:
+tableFreqO=tableFreq[order(tableFreq$ape_contrib),]
+
+
+base = ggplot(tableFreqO, aes(province,ape_contrib)) 
+lolliplot1=base + geom_segment(aes(y = 0, 
+                                   x = province, 
+                                   yend = ape_contrib, 
+                                   xend = province), color = "gray") 
+lolliplot2 = lolliplot1 + geom_point()
+lolliplot2 + scale_x_discrete(limits=tableFreqO$province) # key element
+```
+
+
+```{r lolli_axis_gg, eval=FALSE}
+# new variable
+tableFreqO$gap=tableFreqO$ape_contrib-10
+
+# plot the new variable
+base = ggplot(tableFreqO, aes(province,gap)) 
+
+lolliplot1=base + geom_segment(aes(y = 0, 
+                                   x = province, 
+                                   yend = gap, 
+                                   xend = province), color = "gray") 
+lolliplot2 = lolliplot1 + geom_point()
+lolliplot2 + scale_x_discrete(limits=tableFreqO$province) # key element
+
+```
+
+
+```{r lolli_gg_color, eval=FALSE}
+# a new column for color
+tableFreqO$PositiveGap=ifelse(tableFreqO$gap>0,T,F)
+
+# add new aesthetics 'color'
+base = ggplot(tableFreqO, aes(province,gap,
+                              color=PositiveGap)) #change
+lolliplot1=base + geom_segment(aes(y = 0, 
+                                   x = province, 
+                                   yend = gap, 
+                                   xend = province), color = "gray") 
+lolliplot2 = lolliplot1 + geom_point()
+lolliplot2 + scale_x_discrete(limits=tableFreqO$province) # key element
+```
+
+# Class Exercise: Complete adding the elements missing in the last plot
+
+```{r nudge_gg, eval=FALSE}
+
+tableFreqO$TargetGap=ifelse(tableFreqO$gap>0,"Below Target","Above Target")
+
+base = ggplot(tableFreqO, aes(province,gap,color=TargetGap,
+                              label = round(gap,1))) 
+lolliplot1=base + geom_segment(aes(y =0, 
+                                   x = province, 
+                                   yend = gap, 
+                                   xend = province), color = "gray") 
+lolliplot2=lolliplot1 + geom_point() 
+
+lolliplot3= lolliplot2 + scale_x_discrete(limits=tableFreqO$province) 
+
+lollitplot4 = lolliplot3 + geom_text(nudge_x=0.3, nudge_y=0.1,show.legend = T) +
+              labs(title = "Mozambique Community Health workers contribuition on Family Planning",
+                   subtitle = "2017 Province level GAP on CHW contribuition",
+                     x ="Province", 
+                     y = "% of the FP GAP",
+                     caption = "Fig.1: Represents each province GAP to achieve the 10% target (centered at 0) in 2017.Provinces are ploted from low to high perfomance.
+
+Source:health information system") +
+            theme(panel.background = element_rect(fill = "white",
+                                                    colour = "black"),
+                    plot.caption = element_text(hjust = 0), 
+                    plot.title = element_text(hjust = 0.5),
+                  plot.subtitle = element_text(hjust=0.5)) +
+              geom_hline(yintercept=0,
+                            linetype="solid",
+                            color = "blue",
+                            size= 0.9,
+                            alpha= 0.8)+
+  theme(legend.box.just = c("right","center")) 
+
+
+lollitplot4 
+```
+
+
+
+
+
+
+
