@@ -1,0 +1,280 @@
+---
+title: ' Class Exercise'
+author: "Quinhas Fernandes"
+date: "02/05/2019"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+library(uwIntroStats)
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+library(readr)
+library(foreign)
+library(haven)
+knitr::opts_chunk$set(echo = TRUE, warning=TRUE, message=TRUE)
+
+link="https://github.com/quinhasf/pubpol-599/raw/master/ape_analysis.dta"
+
+chw_fp <- read_dta(url(link))
+```
+
+
+## Class Exercise: Complete adding the elements missing in the last plot - lolliplot
+
+```{r ggplot1, eval=FALSE}
+chw_pf1 <- data.frame(chw_fp[c('province', 'ape_contrib')])
+
+tableFreq=as.data.frame(chw_pf1)
+
+names(tableFreq)=c("province","ape_contrib")
+#you have:
+tableFreq = tableFreq[order(-tableFreq$ape_contrib),]
+
+tableFreq  
+```
+
+
+```{r lolli_gg, eval=FALSE}
+base = ggplot(tableFreq, aes(x=province,ape_contrib)) 
+lolliplot1=base + geom_segment(aes(y = 0, 
+                                   x = province, 
+                                   yend = ape_contrib, 
+                                   xend = province), color = "grey50") 
+lolliplot1 + geom_point()
+```
+
+
+```{r lolli_ord_gg, eval=FALSE}
+
+tableFreqO=tableFreq[order(tableFreq$ape_contrib),]
+
+
+base = ggplot(tableFreqO, aes(province,ape_contrib)) 
+lolliplot1=base + geom_segment(aes(y = 0, 
+                                   x = province, 
+                                   yend = ape_contrib, 
+                                   xend = province), color = "gray") 
+lolliplot2 = lolliplot1 + geom_point()
+lolliplot2 + scale_x_discrete(limits=tableFreqO$province) 
+```
+
+
+```{r lolli_axis_gg, eval=FALSE}
+# new variable
+tableFreqO$gap=tableFreqO$ape_contrib-10
+
+# plot the new variable
+base = ggplot(tableFreqO, aes(province,gap)) 
+
+lolliplot1=base + geom_segment(aes(y = 0, 
+                                   x = province, 
+                                   yend = gap, 
+                                   xend = province), color = "gray") 
+lolliplot2 = lolliplot1 + geom_point()
+lolliplot2 + scale_x_discrete(limits=tableFreqO$province) 
+```
+
+
+```{r lolli_gg_color, eval=FALSE}
+# a new column for color
+tableFreqO$PositiveGap=ifelse(tableFreqO$gap>0,T,F)
+
+# add new aesthetics 'color'
+base = ggplot(tableFreqO, aes(province,gap,
+                              color=PositiveGap)) #change
+lolliplot1=base + geom_segment(aes(y = 0, 
+                                   x = province, 
+                                   yend = gap, 
+                                   xend = province), color = "gray") 
+lolliplot2 = lolliplot1 + geom_point()
+lolliplot2 + scale_x_discrete(limits=tableFreqO$province) # key element
+```
+
+
+```{r nudge_gg, eval=FALSE}
+
+tableFreqO$TargetGap=ifelse(tableFreqO$gap>0,"Below Target","Above Target")
+
+base = ggplot(tableFreqO, aes(province,gap,color=TargetGap,
+                              label = round(gap,1))) 
+lolliplot1=base + geom_segment(aes(y =0, 
+                                   x = province, 
+                                   yend = gap, 
+                                   xend = province), color = "gray") 
+lolliplot2=lolliplot1 + geom_point() 
+
+lolliplot3= lolliplot2 + scale_x_discrete(limits=tableFreqO$province) 
+
+lollitplot4 = lolliplot3 + geom_text(nudge_x=0.3, nudge_y=0.1,show.legend = T) +
+              labs(title = "Mozambique Community Health workers contribuition on Family Planning",
+                   subtitle = "2017 Province level GAP on CHW contribuition",
+                    x ="Province", 
+                    y = "% of the FP GAP",
+                    caption = "Fig.1: Represents each province GAP to achieve the 10% target (centered at 0) in 2017.
+Provinces are ploted from low to high perfomance.
+
+Source:health information system") +
+            theme(panel.background = element_rect(fill = "white",
+                                                    colour = "black"),
+                    plot.caption = element_text(hjust = 0), 
+                    plot.title = element_text(hjust = 0.5),
+                  plot.subtitle = element_text(hjust=0.5)) +
+              geom_hline(yintercept=0,
+                            linetype="solid",
+                            color = "blue",
+                            size= 0.9,
+                            alpha= 0.8)+
+  theme(legend.box.just = c("right","center")) 
+
+lollitplot4 
+```
+
+
+```{r getData, eval=FALSE}
+link='https://github.com/EvansDataScience/VisualAnalytics_2_tabularData/raw/master/data/eduwa.rda'
+
+#getting the data TABLE from the file in the cloud:
+load(file=url(link))
+knitr::opts_chunk$set(echo = TRUE, warning=TRUE, message=TRUE)
+
+library(uwIntroStats)
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+library(readr)
+library(foreign)
+library(haven)
+```
+
+## Class Exercise: Make sure our box plot follows the same design approach and include all the elements as in the bar plot for nominal data
+
+```{r ordinalTable, eval=FALSE}
+table(eduwa$High.Grade,exclude = 'nothing')
+```
+
+```{r tableAsDF, eval=FALSE}
+frqTabO=as.data.frame(prop.table(table(eduwa$High.Grade)))
+names(frqTabO)=c('grade','pct')
+frqTabO
+```
+
+```{r, eval= FALSE}
+box1 = ggplot(eduwa, aes(y=as.numeric(High.Grade))) 
+box1 = box1 + geom_boxplot(varwidth=T, fill="skyblue1") + coord_flip() 
+
+ordLabels= levels(eduwa$High.Grade)
+
+box2 = box1 + scale_y_continuous(labels=ordLabels,breaks=1:15)
+
+box3 = box2 + 
+    labs(title="2017 King County Students Grade Distribution", 
+         subtitle="Box-plot of students high-grade distribution",
+         caption="Source: Seattle Public Schools",
+         y="Schools Grade") +
+   theme(panel.background = element_rect(fill = "white",
+                                                    colour = "blue"),
+                    plot.caption = element_text(hjust = 0), 
+                    plot.title = element_text(hjust = 0.5),
+                  plot.subtitle = element_text(hjust=0.5)) +
+  theme(axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank()) 
+box3
+```
+
+## Class Exercise: Make a histogram for the variable FREE LUNCH, and make sure it has all the right elements, and get rid of unnecessary elements.
+
+```{r, eval=FALSE }
+
+eduwa3=eduwa[complete.cases(eduwa$Reduced.Lunch),]
+
+#ggplot
+base= ggplot(eduwa3,aes(x = Free.Lunch))  
+hist1= base + geom_histogram(binwidth = 100,boundary=0, fill="gray20") #changing width
+hist2= hist1 + stat_bin(binwidth = 100, aes(label=..count..), 
+                  geom = "text",boundary = 0,vjust=-0.5) +
+                  labs(title="2017 Schools distribuition of Free Lunch", 
+                           subtitle="Histogram of frequencies",
+                       caption = "Source: Seattle Public Schools",
+                       x= "Free Lunch",
+                       y="Number of meals (counts)") +
+                       xlim(c(0, 1800)) +
+                 scale_x_continuous(breaks = c(0, 400, 800, 1200, 1600))
+hist2
+```
+
+## Class Exercise: Do some research and make a histogram and a density plot using ggplot for the variable we just used above.
+
+```{r removeMissing2, eval=FALSE}
+
+eduwa4=eduwa[complete.cases(eduwa$Student.Teacher.Ratio),]
+
+meanValues=tapply(eduwa4$Student.Teacher.Ratio, 
+                  eduwa4$County, 
+                  mean)
+eduwa5 = as.data.frame(meanValues)
+```
+
+## histogram
+
+```{r, eval=FALSE}
+#ggplot
+base1= ggplot(eduwa5,aes(x=meanValues)) 
+histogram1= base1 + geom_histogram( binwidth = 2,boundary=0, fill="turquoise3") 
+histogram2= histogram1 + stat_bin(binwidth = 2, aes(label=..count..), 
+                  geom = "text",boundary = 0,vjust=-0.5) +
+                  labs(title="2017 Schools students teacher ratio", 
+                       caption = "Source: Seattle Public Schools",
+                       x= "Mean Students Teacher ratio",
+                       y="Frequency") +
+                       xlim(c(10, 24)) +
+          scale_x_continuous(breaks = c(10,12,14, 16, 18,20, 22, 24)) +
+          geom_vline(aes(xintercept= mean(meanValues), 
+                         linetype = "mean"), 
+                        colour= 'red') +
+          geom_vline(aes(xintercept= median(meanValues), 
+                         linetype = "median"), 
+                         colour= 'blue') +
+          scale_linetype_manual(name = "LEGEND", values = c(2, 2), 
+                       guide = guide_legend(override.aes = list(color = c("blue", "red")))) +
+          theme(legend.justification =c(lty=0.5,lwd=0.5))
+                
+histogram2
+```
+
+## Density
+
+```{r, eval=FALSE}
+
+basemv= ggplot(eduwa5,aes(x=meanValues)) 
+
+density1 = basemv + geom_density( stat="density", color="gray50") +
+           theme(panel.background = element_rect(fill = "white",
+                                                    colour = "black"),
+                    plot.caption = element_text(hjust = 0), 
+                    plot.title = element_text(hjust = 0.5),
+                  plot.subtitle = element_text(hjust=0.5)) +
+          labs(title="2017 Schools students teacher ratio", 
+                       caption = "Source: Seattle Public Schools",
+                       x= "Mean Students Teacher ratio",
+                       y="Frequency") +
+                       xlim(c(8, 28)) + 
+          geom_vline(aes(xintercept= mean(meanValues), 
+                       linetype = "mean"), 
+                       colour= 'red') +
+          geom_vline(aes(xintercept= median(meanValues), 
+                       linetype = "median"), 
+                       colour= 'blue') +
+          scale_linetype_manual(name = "LEGEND", values = c(12, 12), 
+                      guide = guide_legend(override.aes = list(color = c("blue", "red")))) +
+          theme(legend.position = c(lty=0.9,lwd=0.6))
+  
+density1
+```
+                    
+
+
